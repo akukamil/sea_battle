@@ -291,6 +291,15 @@ class field_class extends PIXI.Container{
 	constructor() {
 		
 		super();	
+		
+		this.tile_bcg=new PIXI.TilingSprite(gres.tile_bcg.texture);
+		this.tile_bcg.width=450;
+		this.tile_bcg.height=550;
+		this.tile_bcg.x=20;
+		this.tile_bcg.y=20;
+		this.addChild(this.tile_bcg);
+		
+		
 		this.bcg = new PIXI.Sprite(gres.field_bcg.texture);
 		this.bcg.width=490;
 		this.bcg.height=580;
@@ -2004,6 +2013,9 @@ game={
 						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
+			objects.my_field.tile_bcg.tilePosition.x-=0.12;
+			objects.my_field.tile_bcg.tilePosition.y-=0.2;
+		
 		}
 		
 		if (objects.opp_field.visible){			
@@ -2014,6 +2026,8 @@ game={
 						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
+			objects.opp_field.tile_bcg.tilePosition.x+=0.12;
+			objects.opp_field.tile_bcg.tilePosition.y+=0.2;
 		}
 		
 		if (objects.game_info.visible&&objects.game_info.ready&&Date.now()>objects.game_info.timeout){
@@ -2021,7 +2035,8 @@ game={
 		}
 		
 		this.process_func();
-		
+
+
 	},
 						
 	pref_button_down(){

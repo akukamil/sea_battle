@@ -292,12 +292,12 @@ class field_class extends PIXI.Container{
 		
 		super();	
 		
-		this.tile_bcg=new PIXI.TilingSprite(gres.tile_bcg.texture);
-		this.tile_bcg.width=450;
-		this.tile_bcg.height=550;
-		this.tile_bcg.x=20;
-		this.tile_bcg.y=20;
-		this.addChild(this.tile_bcg);
+		//this.tile_bcg=new PIXI.TilingSprite(gres.tile_bcg.texture);
+		//this.tile_bcg.width=450;
+		//this.tile_bcg.height=550;
+		//this.tile_bcg.x=20;
+		//this.tile_bcg.y=20;
+		//this.addChild(this.tile_bcg);
 		
 		
 		this.bcg = new PIXI.Sprite(gres.field_bcg.texture);
@@ -2013,8 +2013,8 @@ game={
 						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
-			objects.my_field.tile_bcg.tilePosition.x-=0.12;
-			objects.my_field.tile_bcg.tilePosition.y-=0.2;
+			//objects.my_field.tile_bcg.tilePosition.x-=0.12;
+			//objects.my_field.tile_bcg.tilePosition.y-=0.2;
 		
 		}
 		
@@ -2026,8 +2026,8 @@ game={
 						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
-			objects.opp_field.tile_bcg.tilePosition.x+=0.12;
-			objects.opp_field.tile_bcg.tilePosition.y+=0.2;
+			//objects.opp_field.tile_bcg.tilePosition.x+=0.12;
+			//objects.opp_field.tile_bcg.tilePosition.y+=0.2;
 		}
 		
 		if (objects.game_info.visible&&objects.game_info.ready&&Date.now()>objects.game_info.timeout){
@@ -4718,7 +4718,7 @@ async function load_resources() {
 	document.getElementById("m_progress").style.display = 'flex';
 
 	let git_src='https://akukamil.github.io/sea_battle/'
-	//git_src=""
+	git_src=""
 
 	//подпапка с ресурсами
 	let lang_pack = ['RUS','ENG'][LANG];

@@ -1,5 +1,5 @@
 var M_WIDTH=450, M_HEIGHT=800;
-var app, game_res, gdata={},fbd,  game, client_id, objects={}, state="",chat_path, my_role="", game_tick=0, game_id=0, my_turn=0, connected = 1, LANG = 0;
+var app, game_res, gdata={},fbd,  game, client_id, objects={}, state='',git_src='',chat_path, my_role="", game_tick=0, game_id=0, my_turn=0, connected = 1, LANG = 0;
 var h_state=0, game_platform='', hidden_state_start = 0, room_name = 'states';
 var pending_player="",some_process = {};
 var my_data={opp_id : ''},opp_data={};
@@ -280,6 +280,7 @@ class cell_class extends PIXI.Container{
 		
 		this.ship_id=-1;
 		this.type='';
+		this.bonus_type='';
 		
 		this.addChild(this.ship_part,this.other_icon);
 		
@@ -427,9 +428,9 @@ class armory_element_class extends PIXI.Container{
 	constructor(){
 		
 		super();
-		this.config=[0];
-		this.num_config=0;
-		this.num=0;
+		this.bomb_name='';
+		this.bomb_type='';
+		this.bomb_config='';
 		this.bcg=new PIXI.Sprite(gres.armory_element_bcg.texture);
 		this.bcg.width=gdata.armory_element_bcg_w;
 		this.bcg.height=gdata.armory_element_bcg_h;
@@ -438,14 +439,14 @@ class armory_element_class extends PIXI.Container{
 		const t=this;
 		this.bcg.pointerdown=function(){armory.missile_select(t)};
 		
-		this.missile=new PIXI.Sprite(gres.missile_img.texture);
+		this.missile=new PIXI.Sprite();
 		this.missile.x=gdata.missile_x;
 		this.missile.y=gdata.missile_y;
 		this.missile.width=gdata.missile_w;
 		this.missile.height=gdata.missile_h;
 					
 		this.missile_param=new PIXI.BitmapText('0', {fontName: 'mfont',fontSize: 30,align: 'center'});
-		this.missile_param.anchor.set(0.5,0.5);
+		this.missile_param.anchor.set(0,0.5);
 		this.missile_param.x=gdata.missile_param_x;
 		this.missile_param.y=gdata.missile_param_y;				
 		
@@ -463,29 +464,38 @@ class armory_element_class extends PIXI.Container{
 		
 	}
 	
-	set(missile_config, num){		
+	set(bomb_name){		
 
-		this.num=num;
-		this.num_config=missile_config;
-		this.config=missile_config.toString().split('').map(Number);			
-		this.missile_param.text=['Комбо:','Combo:'][LANG]+this.config.join('-');
-		this.missile_num.text='x'+this.num;
+		//фиксируем тип и конфигурация
+		this.bomb_name=bomb_name;
+		
+		//получаем тип и конфигурации снаряда
+		[this.bomb_type,this.bomb_config]=bomb_name.split('_');
+		
+				
+		if (this.bomb_type==='combo'){
+			this.missile.texture=gres.combo_img.texture;
+			this.missile_param.text=['Комбо:','Combo:'][LANG]+this.bomb_config.split('').join('-');				
+		} else {
+			this.missile.texture=gres[bomb_name+'_img'].texture;			
+			this.missile_param.text='***'+this.bomb_config;				
+		}			
+
+		
+		this.missile_num.text='x'+my_data.arms[bomb_name];
 		this.visible=true;
 		
 	}
 	
 	select(s){
-		
-		
+
 		if (s){
 			this.selected_frame.visible=true;
 		}else{
 			this.selected_frame.visible=false;
 		}
-		
-		
-	}
 	
+	}	
 
 }
 
@@ -532,16 +542,18 @@ class shop_card_class extends PIXI.Container{
 		this.addChild(this.bcg,this.t_price,this.t_combo,this.t_amount,this.buy_button);
 
 	}
-	
-	
+		
 	set(data){
 			
-		this.t_combo.text=['КОМБО: ','COMBO: '][LANG]+data.combo.toString().split('').map(Number).join('-');
+		if (typeof(data.type)==='number')
+			this.t_combo.text=['КОМБО: ','COMBO: '][LANG]+data.type.toString().split('').map(Number).join('-');
+		else
+			this.t_combo.text=data.type;
+
 		this.t_price.text=data.price+'$';
-		this.t_amount.text=data.amount+['шт.','pcs.'][LANG];
-		
-	}
+		this.t_amount.text=data.amount+['шт.','pcs.'][LANG];				
 	
+	}
 	
 	
 	
@@ -943,11 +955,12 @@ anim2 = {
 
 sound={
 	
+	
 	on : 1,
 	
-	play : function(snd_res) {
+	play(snd_res) {
 		
-		if (this.on === 0)
+		if (!this.on||document.hidden)
 			return;
 		
 		if (game_res.resources[snd_res]===undefined)
@@ -957,6 +970,35 @@ sound={
 		
 	}
 	
+}
+
+music={
+	
+	on:1,
+	
+	activate(){
+		
+		if (!this.on) return;
+	
+		if (!gres.music.sound.isPlaying){
+			gres.music.sound.play();
+			gres.music.sound.loop=true;
+		}
+	},
+	
+	switch(){
+		
+		if (this.on){
+			this.on=0;
+			gres.music.sound.stop();			
+		} else{
+			this.on=1;
+			gres.music.sound.play();	
+		}
+		
+		objects.pref_music_button.texture=gres[['pref_music_button_off','pref_music_button'][this.on]].texture;
+
+	}
 	
 }
 
@@ -1387,42 +1429,49 @@ armory={
 	
 	init(){
 		
+		this.select_to_0();			
 		this.update();	
-
-		this.selected=objects.missiles[0];
-		objects.missiles[0].set(0,999);
-		objects.missiles[0].select(1);		
 		
 	},
 	
 	update(){
 		
 		//сначала скрываем все
-		for(let i=1;i<objects.missiles.length;i++)
+		for(let i=0;i<objects.missiles.length;i++)
 			objects.missiles[i].visible=false;
 		
-		let i=1;
-		for (let missile_config of Object.keys(my_data.arms))					
-			objects.missiles[i++].set(missile_config,my_data.arms[missile_config]);		
+		let i=0;
+		for (let bomb_type of Object.keys(my_data.arms))
+			objects.missiles[i++].set(bomb_type);		
 		
 	},
 	
-	select_to_0(){
-		
+	select_to_0(){		
 		objects.missiles.forEach(m=>{m.select(0);m.visible=false});
 		this.selected=objects.missiles[0];
-		objects.missiles[0].set(0,999);
+		objects.missiles[0].set('combo_0');
 		objects.missiles[0].select(1);	
 	},
 	
 	missile_select(m){		
 		
-		sound.play('click');
+		sound.play('click2');
 		this.selected=m;	
 		objects.missiles.forEach(m=>m.select(0));
 		m.select(1);
 		
 	},	
+	
+	add_arms(bomb_name, amount){
+		
+		if (my_data.arms[bomb_name])
+			my_data.arms[bomb_name]+=amount;
+		else
+			my_data.arms[bomb_name]=amount;
+		
+		this.update();
+		
+	},
 	
 	button_down(){
 		
@@ -1431,9 +1480,8 @@ armory={
 		
 		sound.play('click');
 		
-		const missiles_num= Object.keys(my_data.arms).length+1;
-		
-				
+		const missiles_num= Object.keys(my_data.arms).length;
+						
 		if (this.on){
 			anim2.add(objects.armory_cont,{y:[objects.armory_cont.y,720]}, true, 0.2,'linear');		
 		} else{			
@@ -1442,7 +1490,6 @@ armory={
 		}
 				
 		this.on=1-this.on;
-	
 	}
 	
 },
@@ -1540,18 +1587,32 @@ game={
 	
 	add_bonuses(field){
 		
+		//денежные бонусы
 		let bonuses_placed=0;
-		while(bonuses_placed<3){
-			
+		while(bonuses_placed<3){			
 			const y=irnd(0,10);
-			const x=irnd(0,8);
-			
+			const x=irnd(0,8);			
 			const cell=field.map[y][x];
 			if (cell.type==='empty'){
 				cell.type='bonus'
+				cell.bonus_type='money';
 				bonuses_placed++;				
 			}			
-		}				
+		}			
+
+		//ракеты
+		bonuses_placed=0;
+		while(bonuses_placed===0){			
+			const y=irnd(0,10);
+			const x=irnd(0,8);			
+			const cell=field.map[y][x];
+			if (cell.type==='empty'){
+				cell.type='bonus'
+				cell.bonus_type=['multi_3','multi_5','multi_9'][irnd(0,2)];
+				bonuses_placed=1;				
+			}			
+		}	
+		
 	},
 	
 	prepare_small_icons(ships_conf){
@@ -1678,8 +1739,10 @@ game={
 		var my = e.data.global.y/app.stage.scale.y;
 
 		//координаты указателя на игровой доске
-		const aimed_y=Math.floor(FIELD_Y_CELLS*(my-objects.opp_field.y-20)/550);		
-		const aimed_x=Math.floor(FIELD_X_CELLS*mx/450);
+		let aimed_y=Math.floor(FIELD_Y_CELLS*(my-objects.opp_field.y-20)/550);		
+		let aimed_x=Math.floor(FIELD_X_CELLS*mx/450);
+		aimed_y=Math.min(Math.max(aimed_y, 0), FIELD_Y_CELLS-1);		
+		aimed_x=Math.min(Math.max(aimed_x, 0), FIELD_X_CELLS-1);
 		
 		//флаг что я сделал ход
 		this.MY_MOVE_DATA=[aimed_y,aimed_x];
@@ -1709,6 +1772,8 @@ game={
 			anim2.add(objects.opp_field,{alpha:[0,1]}, true, 0.25,'linear');	
 			this.start_episode=false;
 			this.add_info('Преход хода к игроку...',999);
+			objects.opp_card_cont.alpha=0.5;
+			objects.my_card_cont.alpha=1;
 		}
 		
 		if (objects.opp_field.ready)
@@ -1725,6 +1790,8 @@ game={
 			anim2.add(objects.my_field,{alpha:[0,1]}, true, 0.25,'linear');	
 			this.start_episode=false;
 			this.add_info('Преход хода к сопернику...',999);
+			objects.opp_card_cont.alpha=1;
+			objects.my_card_cont.alpha=0.5;
 		}
 		
 		if (objects.my_field.ready)
@@ -1753,25 +1820,51 @@ game={
 			return;
 		}		
 
-		if (armory.selected.num_config>0){
-			my_data.arms[armory.selected.num_config]--;
-			if (my_data.arms[armory.selected.num_config]===0){
-				delete my_data.arms[armory.selected.num_config];
+
+		const bomb_name=armory.selected.bomb_name;
+		const bomb_type=armory.selected.bomb_type;
+		const bomb_config=armory.selected.bomb_config;
+		
+		if (my_data.arms[bomb_name]!=='combo_0'){			
+			my_data.arms[bomb_name]--;
+			if (my_data.arms[bomb_name]===0){				
+				delete my_data.arms[bomb_name];
 				armory.select_to_0();
 			}
 			fbs.ref('players/' + my_data.uid + '/arms').set(my_data.arms);	
 			armory.update();
 		}
+
 		
-		//отправляем ход сопернику
-		const my_combo={combo:armory.selected.config,num:0};
+		//отправляем ход сопернику		
+		if (this.opponent===online_game) this.opponent.send_move(aimed_y,aimed_x,armory.selected.data.type,armory.selected.data.config);		
 		
-		if (this.opponent===online_game) this.opponent.send_move(aimed_y,aimed_x,armory.selected.num_config);		
+		this.next_episode();			
+
+		//если выбрана мульти бомба
+		if (bomb_type==='multi'){
+			
+			const targets_data={3:[[0,0],[0,-1],[0,1]],5:[[0,0],[0,-1],[0,1],[-1,0],[1,0]],9:[[-1,-1],[0,-1],[1,-1],[-1,0],[0,0],[1,0],[-1,1],[0,1],[1,1]]}
+			const targets=targets_data[bomb_config];
+			
+			for (let t of targets){
+				const ty=t[0]+aimed_y;
+				const tx=t[1]+aimed_x;
+				
+				if (ty>=0&&ty<FIELD_Y_CELLS&&tx>=0&&tx<FIELD_X_CELLS)
+					this.start_move(objects.opp_field,ty,tx,{combo:[0],num:0});
+			}
+		}
 		
-		this.next_episode();	
-		
-		this.start_move(objects.opp_field,aimed_y,aimed_x,my_combo);
-		
+		//если выбрана обычная ракета
+		if (bomb_type==='combo'){
+			//начальные параметры комбо
+			const my_combo={combo:bomb_config,num:0};			
+			this.start_move(objects.opp_field,aimed_y,aimed_x,my_combo);					
+		}
+	
+
+
 
 		
 	},
@@ -1812,10 +1905,10 @@ game={
 			this.start_episode=false;
 			if (this.opponent===bot_game) this.opponent.send_move();
 			this.add_info('Ждем соперника...',999);
-			
 		}
 		
-		if (this.OPP_MOVE_DATA){			
+		if (this.OPP_MOVE_DATA){		
+			console.log(this.OPP_MOVE_DATA);
 			const combo_arr=this.OPP_MOVE_DATA.combo_num.toString().split('').map(Number);	
 			const combo_data={combo:combo_arr,num:0}
 			this.start_move(objects.my_field,this.OPP_MOVE_DATA.aimed_y,this.OPP_MOVE_DATA.aimed_x,combo_data);
@@ -1877,18 +1970,25 @@ game={
 		
 		if (cell_type==='bonus'){
 			sound.play('bonus');
-			cell.other_icon.texture=gres.bonus_img.texture;
+			
+			if (cell.bonus_type==='money'){
+				cell.other_icon.texture=gres.bonus_money_img.texture;				
+				shop.add_money_bonus(MONEY_BONUS);
+				this.add_info(`Бонус +${MONEY_BONUS}$`,3000);				
+			}else{
+				cell.other_icon.texture=gres['bonus_'+cell.bonus_type+'_img'].texture;					
+				armory.add_arms(cell.bonus_type,5);
+				this.add_info(`Бонус - бомбы!`,3000);		
+			}
+			
+
 			cell.other_icon.visible=true;
-			cell.type='bonus_opened';
-			
-			shop.add_money_bonus(MONEY_BONUS);
-			this.add_info(`Бонус +${MONEY_BONUS}$`,3000);
-			
+			cell.type='bonus_opened';			
 			field.bonus_bcg.y=45+iy*CELL_SIZE;
 			field.bonus_bcg.x=45+ix*CELL_SIZE;
-			anim2.add(field.bonus_bcg,{scale_xy:[0.2,1.5],rotation:[0,2],alpha:[1,0]}, false, 4,'easeOutCubic');
+			anim2.add(field.bonus_bcg,{scale_xy:[0.2,1.5],rotation:[0,2],alpha:[1,0]}, false, 4,'easeOutCubic',false);
 			
-			anim2.add(cell.other_icon,{scale_xy:[0.2,0.6666],alpha:[0,0.8]}, true, 0.25,'easeOutBack');	
+			anim2.add(cell.other_icon,{scale_xy:[0.2,0.6666],alpha:[0,0.8]}, true, 0.25,'easeOutBack',false);	
 		}
 		
 		if (cell_type==='ship_part'){					
@@ -1927,6 +2027,7 @@ game={
 				field.show_ship(cell.ship_id);	
 				this.move_result_info.sinked++;
 			}
+			
 			this.move_result_info.hited++;
 			
 			this.add_explosion(iy,ix);
@@ -1944,6 +2045,24 @@ game={
 				return;
 			}			
 		}
+		
+	},
+	
+	sound_button_down(on){
+					
+		if (on)
+			sound.on=on
+		else
+			sound.on=1-sound.on;
+		
+		objects.pref_sound_button.texture=gres[['pref_sound_button_off','pref_sound_button'][sound.on]].texture;
+		
+		sound.play('click');
+	},
+	
+	music_button_down(on){
+		
+		music.switch();
 		
 	},
 	
@@ -1973,8 +2092,12 @@ game={
 		for (let y = 0; y <FIELD_Y_CELLS; y++){
 			for (let x = 0; x <FIELD_X_CELLS; x++){
 				const cell=field.map[y][x];
-				if (cell.type==='empty'||cell.type==='ship_part' )
-					targets.push([y,x,rnd.next()]);					
+				if (cell.type==='empty'||cell.type==='ship_part'||cell.type==='bonus'){
+					const rnd_next=rnd.next();
+					targets.push([y,x,rnd_next]);						
+					console.log(rnd_next);
+				}
+				
 			}
 		}		
 		targets = targets.sort(function(a, b) {return a[2] - b[2]});
@@ -2076,6 +2199,8 @@ game={
 	async stop (result) {
 		
 		some_process.game_process=function(){};
+		
+		objects.bullets.forEach(b=>b.visible=false);
 				
 		objects.armory_cont.visible=false;
 		anim2.add(objects.pref_button_cont,{y:[objects.pref_button_cont.y,800]}, false, 0.1,'linear');
@@ -2095,8 +2220,6 @@ game={
 		
 		//показыаем основное меню
 		main_menu.activate();
-		
-
 
 		//стираем данные оппонента
 		opp_data.uid="";
@@ -2112,11 +2235,11 @@ game={
 
 shop={
 	
-	data:[{combo:3,amount:5,price:10},
-			{combo:21,amount:5,price:20},
-			{combo:22,amount:5,price:30},
-			{combo:31,amount:5,price:50},
-			{combo:332,amount:5,price:100}],
+	data:[{bomb_name:'combo_3',amount:5,price:10},
+			{bomb_name:'combo_32',amount:5,price:20},
+			{bomb_name:'combo_33',amount:5,price:30},
+			{bomb_name:'combo_322',amount:5,price:50},
+			{bomb_name:'combo_332',amount:5,price:100}],
 	
 	activate(){		
 		
@@ -2140,8 +2263,8 @@ shop={
 	
 	buy_down(card){
 		
-		const combo_config=this.data[card.id].combo;
-		const missiles_num=this.data[card.id].amount;
+		const bomb_name=this.data[card.id].bomb_name;
+		const bombs_num=this.data[card.id].amount;
 		const price=this.data[card.id].price;
 		
 		if (price>my_data.money){			
@@ -2153,17 +2276,13 @@ shop={
 		my_data.money-=price;
 		
 		objects.shop_money.text=my_data.money+'$';		
-		
-		if (my_data.arms[combo_config])
-			my_data.arms[combo_config]+=missiles_num;
-		else
-			my_data.arms[combo_config]=missiles_num;
+		armory.add_arms(bomb_name, bombs_num);
 		
 		fbs.ref('players/' + my_data.uid + '/money').set(my_data.money);		
 		fbs.ref('players/' + my_data.uid + '/arms').set(my_data.arms);
 		
 	},
-	
+		
 	exit_button_down(){
 		
 		this.close();
@@ -2617,8 +2736,7 @@ req_dialog = {
 		
 		sound.play('close');
 
-
-		anim2.add(objects.req_cont,{y:[objects.req_cont.sy, -260]}, false, 0.5,'easeInBack');
+		anim2.add(objects.req_cont,{scale_y:[1, 0]}, false, 0.15,'linear');
 
 		fbs.ref("inbox/"+req_dialog._opp_data.uid).set({sender:my_data.uid,message:"REJECT",tm:Date.now()});
 	},
@@ -2634,7 +2752,7 @@ req_dialog = {
 		//устанавливаем окончательные данные оппонента
 		opp_data = req_dialog._opp_data;	
 	
-		anim2.add(objects.req_cont,{y:[objects.req_cont.sy, -260]}, false, 0.5,'easeInBack');
+		anim2.add(objects.req_cont,{scale_y:[1, 0]}, false, 0.15,'linear');
 
 
 		//отправляем информацию о согласии играть с идентификатором игры
@@ -2670,8 +2788,11 @@ req_dialog = {
 main_menu={
 
 	async activate() {
+				
 		
-		
+		//проверяем и включаем музыку
+		music.activate();
+				
 		//игровой титл
 		anim2.add(objects.game_title,{y:[-100,objects.game_title.sy],alpha:[0,1]}, true, 0.75,'linear');	
 		
@@ -2682,7 +2803,6 @@ main_menu={
 
 		//кнопки
 		await anim2.add(objects.main_buttons_cont,{y:[450,objects.main_buttons_cont.sy],alpha:[0,1]}, true, 0.75,'linear');	
-		
 
 	},
 
@@ -2768,10 +2888,12 @@ main_menu={
 
 	shop_button_down() {
 
-		if (anim2.any_on()===true) {
+		if (anim2.any_on()) {
 			sound.play('locked');
 			return
 		};
+			
+		sound.play('click');
 			
 		this.close();
 		shop.activate();
@@ -4061,7 +4183,7 @@ stickers={
 
 
 		//анимационное появление панели стикеров
-		anim2.add(objects.stickers_cont,{y:[450, objects.stickers_cont.sy]}, true, 0.5,'easeOutBack');
+		anim2.add(objects.stickers_cont,{scale_y:[0, 1]}, true, 0.15,'linear');
 
 	},
 
@@ -4073,7 +4195,7 @@ stickers={
 			return;
 
 		//анимационное появление панели стикеров
-		anim2.add(objects.stickers_cont,{y:[objects.stickers_cont.sy, -450]}, false, 0.5,'easeInBack');
+		anim2.add(objects.stickers_cont,{scale_y:[1, 0]}, false, 0.15,'linear');
 
 	},
 
@@ -4086,6 +4208,7 @@ stickers={
 			this.promise_resolve_send('forced');
 
 		this.hide_panel();
+		sound.play('sent_sticker');
 
 		fbs.ref('inbox/'+opp_data.uid).set({sender:my_data.uid,message:'MSG',tm:Date.now(),data:id});
 
@@ -4423,16 +4546,14 @@ function set_state(params) {
 
 function vis_change() {
 
-		if (document.hidden === true) {
-			hidden_state_start = Date.now();			
-			sound.on=0;
-		} else {
-			sound.on=1;	
-		}
-
-		
-		set_state({hidden : document.hidden});
-		
+	if (document.hidden) {
+		hidden_state_start = Date.now();			
+		PIXI.sound.pauseAll();	
+	} else {
+		PIXI.sound.resumeAll();	
+	}
+	
+	set_state({hidden : document.hidden});
 		
 }
 
@@ -4444,8 +4565,7 @@ language_dialog={
 				
 		return new Promise(function(resolve, reject){
 
-
-			document.body.innerHTML='<style>		html,		body {		margin: 0;		padding: 0;		height: 100%;	}		body {		display: flex;		align-items: center;		justify-content: center;		background-color: rgba(24,24,64,1);		flex-direction: column	}		.two_buttons_area {	  width: 70%;	  height: 50%;	  margin: 20px 20px 0px 20px;	  display: flex;	  flex-direction: row;	}		.button {		margin: 5px 5px 5px 5px;		width: 50%;		height: 100%;		color:white;		display: block;		background-color: rgba(44,55,100,1);		font-size: 10vw;		padding: 0px;	}  	#m_progress {	  background: rgba(11,255,255,0.1);	  justify-content: flex-start;	  border-radius: 100px;	  align-items: center;	  position: relative;	  padding: 0 5px;	  display: none;	  height: 50px;	  width: 70%;	}	#m_bar {	  box-shadow: 0 10px 40px -10px #fff;	  border-radius: 100px;	  background: #fff;	  height: 70%;	  width: 0%;	}	</style><div id ="two_buttons" class="two_buttons_area">	<button class="button" id ="but_ref1" onclick="language_dialog.p_resolve(0)">RUS</button>	<button class="button" id ="but_ref2"  onclick="language_dialog.p_resolve(1)">ENG</button></div><div id="m_progress">  <div id="m_bar"></div></div>';
+			document.body.innerHTML='<style>		html,		body {		margin: 0;		padding: 0;		height: 100%;	}		body {		display: flex;		align-items: center;		justify-content: center;		background-color: rgba(0,0,0,1);		flex-direction: column	}		.two_buttons_area {	  width: 70%;	  height: 50%;	  margin: 20px 20px 0px 20px;	  display: flex;	  flex-direction: row;	}		.button {		margin: 5px 5px 5px 5px;		width: 50%;		height: 100%;		color:white;		display: block;		background-color: rgba(44,55,66,1);		font-size: 10vw;		padding: 0px;	}  	#m_progress {	  background: rgba(100,100,100,0.1);	  justify-content: flex-start;	  border-radius: 100px;	  align-items: center;	  position: relative;	  padding: 0 5px;	  display: none;	  height: 50px;	  width: 70%;	}	#m_bar {	  box-shadow: 0 10px 40px -10px #fff;	  border-radius: 100px;	  background: #fff;	  height: 70%;	  width: 0%;	}	</style><div id ="two_buttons" class="two_buttons_area">	<button class="button" id ="but_ref1" onclick="language_dialog.p_resolve(0)">RUS</button>	<button class="button" id ="but_ref2"  onclick="language_dialog.p_resolve(1)">ENG</button></div><div id="m_progress">  <div id="m_bar"></div></div>';
 			
 			language_dialog.p_resolve = resolve;	
 						
@@ -4499,6 +4619,7 @@ async function define_platform_and_language() {
 	
 	game_platform = 'UNKNOWN';	
 	LANG = await language_dialog.show();
+	document.getElementById('m_progress').outerHTML = "";	
 	
 	
 
@@ -4510,11 +4631,20 @@ async function init_game_env(lang) {
 	await define_platform_and_language();
 	console.log(game_platform, LANG);
 						
-	//отображаем шкалу загрузки
-	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(41,41,41,1);flex-direction: column	}#m_progress {	  background: #1a1a1a;	  justify-content: flex-start;	  border-radius: 5px;	  align-items: center;	  position: relative;	  padding: 0 5px;	  display: none;	  height: 50px;	  width: 70%;	}	#m_bar {	  box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset;	  border-radius: 5px;	  background: rgb(119, 119, 119);	  height: 70%;	  width: 0%;	}	</style></div><div id="m_progress">  <div id="m_bar"></div></div>';
-			
-	await load_resources();
+	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style></div><div id="m_progress">  <div id="m_bar"></div></div>';
 	
+	//Сцена и пикси
+	app = new PIXI.Application({width:M_WIDTH, height:M_HEIGHT,antialias:false,backgroundColor : 0x152543});
+	const c = document.body.appendChild(app.view);
+	c.style["boxShadow"] = "0 0 15px #000000";
+	
+	
+	//события изменения окна
+	resize();
+	window.addEventListener('resize', resize);
+
+	await load_resources();
+
 	await auth2.init();
 	
 	//инициируем файербейс
@@ -4531,14 +4661,6 @@ async function init_game_env(lang) {
 	}
 	
 	fbs=firebase.database();
-
-	app = new PIXI.Application({width:M_WIDTH, height:M_HEIGHT,antialias:false,backgroundColor : 0x64D0ED});
-	document.body.appendChild(app.view);
-
-
-	//события изменения окна
-	resize();
-	window.addEventListener("resize", resize);
 	
 	//идентификатор клиента
 	client_id = irnd(10,999999);
@@ -4623,11 +4745,6 @@ async function init_game_env(lang) {
 
 	//это разные события
 	document.addEventListener("visibilitychange", vis_change);
-	window.addEventListener("wheel", (event) => {	
-		//lobby.wheel_event(Math.sign(event.deltaY));
-		chat.wheel_event(Math.sign(event.deltaY));
-	});	
-	window.addEventListener('keydown', function(event) { feedback.key_down(event.key)});
 	
 	//загружаем остальные данные из файербейса
 	let _other_data = await fbs.ref("players/" + my_data.uid).once('value');
@@ -4642,8 +4759,10 @@ async function init_game_env(lang) {
 	my_data.rating = (other_data && other_data.rating) || 1400;
 	my_data.games = (other_data && other_data.games) || 0;
 	my_data.name = (other_data && other_data.name) || my_data.name;
-	my_data.arms = (other_data && other_data.arms) || {};
+	my_data.arms = (other_data && other_data.arms) || [{type:'combo',config:[3,2,2],num:3},{type:'multi',config:5,num:4}];
 	my_data.money = (other_data && other_data.money) || 100;
+		
+	my_data.arms={'combo_0':999,'combo_332':5,'multi_5':3};
 		
 	//устанавлием имена
 	make_text(objects.id_name,my_data.name,150);
@@ -4692,7 +4811,6 @@ async function init_game_env(lang) {
 	setInterval(function()	{keep_alive()}, 40000);
 
 
-
 	//контроль за присутсвием
 	var connected_control = fbs.ref(".info/connected");
 	connected_control.on("value", (snap) => {
@@ -4713,18 +4831,61 @@ async function init_game_env(lang) {
 
 }
 
+async function loading_elements(){
+		
+	game_res.add('loading_text',git_src+'res/LOADING/loading_text.png');
+	game_res.add('complete_text',git_src+'res/LOADING/complete_text.png');
+	await new Promise((resolve, reject)=> game_res.load(resolve))
+		
+	const lw=250;
+	const lh=40;
+	const sx=(450-lw)/2;
+	const sy=(800-lh)/2;
+		
+	objects.loading_bcg=new PIXI.Sprite(PIXI.Texture.WHITE);
+	objects.loading_bcg.width=lw;
+	objects.loading_bcg.height=lh;
+	objects.loading_bcg.x=sx;
+	objects.loading_bcg.y=sy;
+	objects.loading_bcg.tint=0x000022;	
+	
+	objects.loading_text=new PIXI.Sprite(gres.loading_text.texture);
+	objects.loading_text.width=lw;
+	objects.loading_text.height=lh;
+	objects.loading_text.x=sx;
+	objects.loading_text.y=sy;
+	
+	objects.loading_front=new PIXI.Sprite(PIXI.Texture.WHITE);
+	objects.loading_front.width=0;
+	objects.loading_front.height=lh;
+	objects.loading_front.x=sx;
+	objects.loading_front.y=sy;
+	objects.loading_front.alpha=0.54;
+	objects.loading_front.tint=0x01AEBB;	
+	
+	app.stage.addChild(objects.loading_bcg,objects.loading_text,objects.loading_front);
+	
+	
+}
+
 async function load_resources() {
 
-	document.getElementById("m_progress").style.display = 'flex';
 
-	let git_src='https://akukamil.github.io/sea_battle/'
-	//git_src=""
+	git_src='https://akukamil.github.io/sea_battle/'
+	git_src=''
 
 	//подпапка с ресурсами
-	let lang_pack = ['RUS','ENG'][LANG];
+	let lang_pack = ['RUS','ENG'][LANG];	
 	
+	//все ресурсы и короткое обращение к ним	
 	game_res=new PIXI.Loader();
-	game_res.add("m2_font", git_src+"fonts/balsamic/font.fnt");
+	gres=game_res.resources;	
+	
+	await loading_elements();	
+	
+
+	
+	game_res.add('m2_font', git_src+'fonts/balsamic/font.fnt');
 
 	game_res.add('receive_move',git_src+'sounds/receive_move.mp3');
 	game_res.add('note',git_src+'sounds/note.mp3');
@@ -4742,16 +4903,18 @@ async function load_resources() {
 	game_res.add('money',git_src+'sounds/money.mp3');
 	game_res.add('bonus',git_src+'sounds/bonus.mp3');
 	game_res.add('sos',git_src+'sounds/sos.mp3');
-	
+	game_res.add('music',git_src+'sounds/music.mp3');
+	game_res.add('sent_sticker',git_src+'sounds/sent_sticker.mp3');
+	game_res.add('click2',git_src+'sounds/click2.mp3');
 	
     //добавляем из листа загрузки
     for (var i = 0; i < load_list.length; i++)
-        if (load_list[i].class === "sprite" || load_list[i].class === "image" )
-            game_res.add(load_list[i].name, git_src+'res/'+lang_pack+'/'+load_list[i].name+"."+load_list[i].image_format);		
+        if (load_list[i].class==='sprite'||load_list[i].class === 'image')
+            game_res.add(load_list[i].name, git_src+'res/'+lang_pack+'/'+load_list[i].name+'.'+load_list[i].image_format);		
 
 	//добавляем текстуры стикеров
 	for (var i=0;i<16;i++)
-		game_res.add("sticker_texture_"+i, git_src+"stickers/"+i+".png");
+		game_res.add('sticker_texture_'+i, git_src+'stickers/'+i+'.png');
 	
 	//загружаем взрывы
 	for (var i=0;i<20;i++)
@@ -4759,18 +4922,12 @@ async function load_resources() {
 
 	//прогресс
 	game_res.onProgress.add(function(loader, resource) {
-		document.getElementById("m_bar").style.width =  Math.round(loader.progress)+"%";
+		objects.loading_front.width=loader.progress*2.5;
 	});
-
-	
-	
+		
 	await new Promise((resolve, reject)=> game_res.load(resolve))
-	
-	//убираем элементы загрузки
-	document.getElementById("m_progress").outerHTML = "";	
-
-	//короткое обращение к ресурсам
-	gres=game_res.resources;
+	objects.loading_text.texture=gres.complete_text.texture;
+	await new Promise(resolve => setTimeout(resolve, 1000));
 
 }
 

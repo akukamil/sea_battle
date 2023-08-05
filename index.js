@@ -3059,7 +3059,7 @@ lobby={
 			
 			//создаем заголовки
 			const room_desc=['КОМНАТА #','ROOM #'][LANG]+{'states':1,'states2':2,'states3':3,'states4':4,'states4':5}[room_name];
-			this.sw_header.header_list=[['ДОБРО ПОЖАЛОВАТЬ В ИГРУ УГОЛКИ ОНЛАЙН!','WELCOME!!!'][LANG],room_desc]
+			this.sw_header.header_list=[['ДОБРО ПОЖАЛОВАТЬ В КАЮТ-КОМПАНИЮ!','WELCOME TO THE WARDROOM!'][LANG],room_desc]
 			objects.lobby_header.text=this.sw_header.header_list[0];
 			this.sw_header.time=Date.now()+12000;
 			this.activated=true;
@@ -4493,7 +4493,7 @@ async function load_resources() {
 
 
 	git_src='https://akukamil.github.io/sea_battle/'
-	git_src=''
+	//git_src=''
 
 	//подпапка с ресурсами
 	let lang_pack = ['RUS','ENG'][LANG];	

@@ -942,7 +942,7 @@ message={
 
 		objects.message_text.text=text;
 
-		await anim2.add(objects.message_cont,{x:[-200,objects.message_cont.sx]}, true, 0.25,'easeOutBack',false);
+		await anim2.add(objects.message_cont,{y:[-50,objects.message_cont.sy]}, true, 0.25,'linear',false);
 
 		let res = await new Promise((resolve, reject) => {
 				message.promise_resolve = resolve;
@@ -953,7 +953,7 @@ message={
 		if (res === "forced")
 			return;
 
-		anim2.add(objects.message_cont,{x:[objects.message_cont.sx, -200]}, false, 0.25,'easeInBack',false);			
+		anim2.add(objects.message_cont,{y:[objects.message_cont.y, -50]}, false, 0.25,'linear',false);			
 	},
 	
 	clicked : function() {

@@ -1032,12 +1032,13 @@ online_game={
 		//счетчик времени
 		this.prv_tick_time=Date.now();
 		this.move_time_left = 15;
-		//this.timer_id = setTimeout(function(){online_game.timer_tick()}, 1000);
+		this.timer_id = setTimeout(function(){online_game.timer_tick()}, 1000);
 		objects.timer_text.tint=0xffffff;
 		
 		//отображаем таймер
 		objects.timer_cont.visible = true;
-		objects.timer_cont.x = my_turn === 1 ? 30 : 630;
+		
+		this.switch_timer();
 		
 		//фиксируем врему начала игры
 		this.start_time = Date.now();
@@ -1100,30 +1101,23 @@ online_game={
 
 		//обновляем текст на экране
 		objects.timer_text.text="0:"+this.move_time_left;
-		//следующая секунда
-		this.timer_id = setTimeout(function(){online_game.timer_tick()}, 1000);		
+		
 	},
 	
 	send_move(aimed_y,aimed_x,bomb_name){		
 		
 		fbs.ref("inbox/"+opp_data.uid).set({sender:my_data.uid,message:'MOVE',tm:Date.now(),data:{aimed_y,aimed_x,bomb_name}})
-		
-	},
+	},	
 	
-	async send_message() {
+	switch_timer(on) {
 		
-		let msg_data = await feedback.show();
+		clearTimeout(this.timer_id);
+				
+		if(!on)	return;
 		
-		if (msg_data[0] === 'sent') {			
-			fbs.ref("inbox/"+opp_data.uid).set({sender:my_data.uid,message:"CHAT",tm:Date.now(),data:msg_data[1]});	
-
-		} else {			
-			message.add(['Сообщение не отправлено','Message was not sent'][LANG]);
-		}
-		
-	},
-	
-	reset_timer() {
+		//заново начинаем таймер
+		this.prv_tick_time=Date.now();
+		this.timer_id = setInterval(function(){online_game.timer_tick()}, 1000);
 		
 		//обовляем время разъединения
 		this.disconnect_time = 0;
@@ -1133,7 +1127,14 @@ online_game={
 		objects.timer_text.text="0:"+this.move_time_left;
 		objects.timer_text.tint=0xffffff;
 		
-		objects.timer_cont.x = my_turn === 1 ? 30 : 630;
+		if (my_turn){
+			objects.timer_cont.x = 90;			
+			objects.timer_cont.y = 40;
+		}else{
+			objects.timer_cont.x = 250;			
+			objects.timer_cont.y = -20;
+		}
+
 		
 	},
 		
@@ -1290,7 +1291,7 @@ bot_game={
 		
 	},
 	
-	reset_timer() {
+	switch_timer() {
 		
 		
 	},
@@ -1496,12 +1497,14 @@ game={
 		objects.opp_field.pointerdown = game.mouse_down_on_field.bind(game);		
 				
 		objects.opp_field.hide_ships();		
-		if (my_role==='master')
-			this.episodes=['P_switch_to_player','P_wait_player_move','P_move','P_wait','P_switch_to_opp','P_wait','P_wait_opp_move','P_move','P_wait']
+		if (my_role==='master')	
+			this.episodes=['P_switch_to_player','P_wait_player_move','P_move','P_wait','P_switch_to_opp','P_wait','P_wait_opp_move','P_move','P_wait']			
 		else
-			this.episodes=['P_switch_to_opp','P_wait','P_wait_opp_move','P_move','P_wait','P_switch_to_player','P_wait_player_move','P_move','P_wait']
+			this.episodes=['P_switch_to_opp','P_wait','P_wait_opp_move','P_move','P_wait','P_switch_to_player','P_wait_player_move','P_move','P_wait']			
 
-		//my_turn=1;
+
+
+
 		this.next_episode(0);
 		
 	},
@@ -1726,9 +1729,16 @@ game={
 			this.MY_MOVE_DATA=null
 			this.start_episode=false;
 			this.add_info(['Ваш ход...','Your turn...'][LANG],999);
+			
+			my_turn=1;
+			this.opponent.switch_timer(1);
 		}
 		
 		if (!this.MY_MOVE_DATA) return;
+		
+		my_turn=0;
+		this.opponent.me_conf_play=1;
+		this.opponent.switch_timer(0);
 		
 		const [aimed_y,aimed_x]=this.MY_MOVE_DATA;
 		
@@ -1798,10 +1808,14 @@ game={
 			this.start_episode=false;
 			if (this.opponent===bot_game) this.opponent.send_move();
 			this.add_info('Ждем соперника...',999);
+			
+			my_turn=0;
+			this.opponent.switch_timer(1);
 		}
 		
 		if (this.OPP_MOVE_DATA){		
-						
+			this.opponent.opp_conf_play=1;
+			this.opponent.switch_timer(0);
 			this.init_move(objects.my_field,this.OPP_MOVE_DATA)
 			this.next_episode();
 			this.OPP_MOVE_DATA=null;

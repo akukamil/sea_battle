@@ -2208,7 +2208,7 @@ shop={
 		const price=this.data[card.id].price;
 		
 		if (price>my_data.money){			
-			message.add('no money');
+			message.add(['Покупка невозможна','No money'][LANG]);
 			return;
 		}
 		
@@ -2507,6 +2507,32 @@ ad={
 	}
 }
 
+vk={
+	
+	invite_button_down(){
+		if (anim2.any_on())
+			return;
+		
+		sound.play('click');
+		vkBridge.send('VKWebAppShowInviteBox');
+		anim2.add(objects.vk_buttons_cont,{y:[objects.vk_buttons_cont.y,850]}, false, 0.75,'linear');	
+		
+	},
+	
+	share_button_down(){
+		
+		if (anim2.any_on())
+			return;
+		
+		sound.play('click');
+		vkBridge.send('VKWebAppShowWallPostBox', { message: 'Я играю в Морской бой и мне нравится!','attachments': 'https://vk.com/app51722661'})
+		anim2.add(objects.vk_buttons_cont,{y:[objects.vk_buttons_cont.y,850]}, false, 0.75,'linear');	
+		
+	}
+	
+	
+}
+
 confirm_dialog={
 	
 	p_resolve : 0,
@@ -2742,6 +2768,10 @@ main_menu={
 		anim2.add(objects.desktop,{alpha:[0,1]}, true, 0.5,'linear');	
 		
 		some_process.main_menu=this.process;
+		
+		//vk
+		if (game_platform==='VK')
+		anim2.add(objects.vk_buttons_cont,{y:[850,objects.vk_buttons_cont.sy]}, true, 0.75,'linear');	
 
 		//кнопки
 		await anim2.add(objects.main_buttons_cont,{y:[450,objects.main_buttons_cont.sy],alpha:[0,1]}, true, 0.75,'linear');	
@@ -2759,7 +2789,9 @@ main_menu={
 		//кнопки
 		await anim2.add(objects.main_buttons_cont,{y:[objects.main_buttons_cont.y, 450],alpha:[1,0]}, false, 0.5,'linear');	
 		
-
+		//vk
+		if(objects.vk_buttons_cont.visible)
+			anim2.add(objects.vk_buttons_cont,{y:[objects.vk_buttons_cont.y,850]}, false, 0.75,'linear');	
 
 	},
 

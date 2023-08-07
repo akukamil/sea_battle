@@ -2767,12 +2767,13 @@ rules={
 	},
 	
 	exit_down(){
+		
 		if (anim2.any_on()) return;
+		sound.play('click');
 		objects.rules_cont.visible=false;
 		main_menu.activate();	
 		
 	},	
-
 	
 	swipe_down(dir){
 		
@@ -2801,8 +2802,6 @@ rules={
 		sound.play('click');
 		
 	}
-	
-	
 	
 }
 

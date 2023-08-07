@@ -1480,6 +1480,11 @@ game={
 		//если открыт лидерборд то закрываем его
 		if (objects.lb_1_cont.visible===true)
 			lb.close();
+		
+		//если открыт лидерборд то закрываем его
+		if (objects.rules_cont.visible)
+			objects.rules_cont.visible=false;
+		
 				
 		sound.play('note');
 
@@ -2753,6 +2758,54 @@ req_dialog={
 
 }
 
+rules={
+	
+	activate(){
+		
+		objects.rules_cont.visible=true;
+		
+	},
+	
+	exit_down(){
+		if (anim2.any_on()) return;
+		objects.rules_cont.visible=false;
+		main_menu.activate();	
+		
+	},	
+
+	
+	swipe_down(dir){
+		
+		if (anim2.any_on()) return;
+		
+		
+		if (dir===1){
+			
+			if (objects.rules_page_2.x===0)
+				return;
+			
+			
+			anim2.add(objects.rules_page_1,{x:[0, -450]}, false, 0.25,'linear');
+			anim2.add(objects.rules_page_2,{x:[450, 0]}, true, 0.25,'linear');		
+		}
+		
+		if (dir===-1){
+			
+			if (objects.rules_page_1.x===0)
+				return;
+			
+			anim2.add(objects.rules_page_1,{x:[-450, 0]}, true, 0.25,'linear');
+			anim2.add(objects.rules_page_2,{x:[0, 450]}, false, 0.25,'linear');		
+		}
+		
+		sound.play('click');
+		
+	}
+	
+	
+	
+}
+
 main_menu={
 
 	async activate() {
@@ -2849,14 +2902,10 @@ main_menu={
 		};
 
 		sound.play('click');
-	
-		anim2.add(objects.rules_cont,{y:[-450, objects.rules_cont.sy]}, true, 0.5,'easeOutBack');
+		
+		this.close();
+		rules.activate();
 
-	},
-
-	rules_ok_down() {
-
-		anim2.add(objects.rules_cont,{y:[objects.rules_cont.sy, -450]}, false, 0.5,'easeInBack');
 
 	},
 
@@ -4312,6 +4361,9 @@ async function init_game_env(lang) {
 	resize();
 	window.addEventListener('resize', resize);
 
+	//запускаем главный цикл
+	main_loop();
+
 	await load_resources();
 
 	await auth2.init();
@@ -4391,8 +4443,7 @@ async function init_game_env(lang) {
         }
     }
 
-	//запускаем главный цикл
-	main_loop();
+
 	
 	//айди
 	anim2.add(objects.id_cont,{scale_y:[0,1]}, true, 0.15,'linear');
@@ -4508,31 +4559,33 @@ async function loading_elements(){
 		
 	const lw=250;
 	const lh=40;
-	const sx=(450-lw)/2;
-	const sy=(800-lh)/2;
+	const sx=450/2;
+	const sy=800/2;
 		
 	objects.loading_bcg=new PIXI.Sprite(PIXI.Texture.WHITE);
 	objects.loading_bcg.width=lw;
 	objects.loading_bcg.height=lh;
-	objects.loading_bcg.x=sx;
-	objects.loading_bcg.y=sy;
+	objects.loading_bcg.anchor.set(0.5,0.5);
 	objects.loading_bcg.tint=0x000022;	
 	
 	objects.loading_text=new PIXI.Sprite(gres.loading_text.texture);
 	objects.loading_text.width=lw;
 	objects.loading_text.height=lh;
-	objects.loading_text.x=sx;
-	objects.loading_text.y=sy;
+	objects.loading_text.anchor.set(0.5,0.5);
 	
 	objects.loading_front=new PIXI.Sprite(PIXI.Texture.WHITE);
 	objects.loading_front.width=0;
 	objects.loading_front.height=lh;
-	objects.loading_front.x=sx;
-	objects.loading_front.y=sy;
 	objects.loading_front.alpha=0.54;
 	objects.loading_front.tint=0x01AEBB;	
+	objects.loading_front.anchor.set(0.5,0.5);
 	
-	app.stage.addChild(objects.loading_bcg,objects.loading_text,objects.loading_front);
+	objects.preloading_cont=new PIXI.Container();
+	objects.preloading_cont.addChild(objects.loading_bcg,objects.loading_text,objects.loading_front);
+	objects.preloading_cont.x=sx;
+	objects.preloading_cont.y=sy;
+		
+	app.stage.addChild(objects.preloading_cont);
 	
 	
 }
@@ -4597,6 +4650,7 @@ async function load_resources() {
 	await new Promise((resolve, reject)=> game_res.load(resolve))
 	objects.loading_text.texture=gres.complete_text.texture;
 	await new Promise(resolve => setTimeout(resolve, 1000));
+	await anim2.add(objects.preloading_cont,{scale_y:[1,0]}, false, 0.25,'linear');		
 
 }
 

@@ -3094,17 +3094,32 @@ lobby={
 		if (!this.activated){			
 			//расставляем по соответствующим координатам
 			
+			
+			
 			for(let i=0;i<objects.mini_cards.length;i++) {
 
-				const iy=~~((i)/3)
-				objects.mini_cards[i].y=60+iy*85;		
-				ix=i%4;
-				objects.mini_cards[i].x=10+ix*140;
+				let iy=~~((i)/3)				
+				const ix=i%3;	
+				
+
+				let shift_x=0;
+				if (iy>2){					
+					iy-=3
+					shift_x+=450;
+				}
+
+
+
+				
+				objects.mini_cards[i].y=60+iy*180;				
+				objects.mini_cards[i].x=shift_x+10+ix*140;
+					
+
 			}		
 
 			
 			//создаем заголовки
-			const room_desc=['КОМНАТА #','ROOM #'][LANG]+{'states':1,'states2':2,'states3':3,'states4':4,'states4':5}[room_name];
+			const room_desc=['КОМНАТА #','ROOM #'][LANG]+{'states':1,'states2':2,'states3':3,'states4':4,'states5':5}[room_name];
 			this.sw_header.header_list=[['ДОБРО ПОЖАЛОВАТЬ В КАЮТ-КОМПАНИЮ!','WELCOME TO THE WARDROOM!'][LANG],room_desc]
 			objects.lobby_header.text=this.sw_header.header_list[0];
 			this.sw_header.time=Date.now()+12000;
@@ -3672,20 +3687,7 @@ lobby={
 
 
 	},
-	
-	peek_down(){
 		
-		if (anim2.any_on()) {
-			sound.play('locked');
-			return
-		};
-		sound.play('click');
-		this.close();	
-		
-		//активируем просмотр игры
-		game_watching.activate(objects.td_cont.card);
-	},
-	
 	async switch_header(){
 		
 		await anim2.add(objects.lobby_header,{y:[objects.lobby_header.sy, -60],alpha:[1,0]},false,1,'linear',false);	
@@ -3804,9 +3806,9 @@ lobby={
 		
 		sound.play('click');
 		const cur_x=objects.cards_cont.x;
-		const new_x=cur_x-dir*800;
+		const new_x=cur_x-dir*450;
 		
-		if (new_x>0 || new_x<-800) {
+		if (new_x>0 || new_x<-450) {
 			sound.play('locked');
 			return
 		}

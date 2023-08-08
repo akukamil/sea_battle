@@ -3,7 +3,7 @@ var app, game_res, gdata={},fbd,  game, client_id, objects={}, state='',git_src=
 var h_state=0, game_platform='', hidden_state_start = 0, room_name = 'states';
 var pending_player="",some_process = {};
 var my_data={opp_id : ''},opp_data={};
-const FIELD_X_CELLS=9, FIELD_Y_CELLS=11,CELL_SIZE=50, WIN = 1, DRAW = 0, LOSE = -1, NOSYNC = 2,MONEY_BONUS=10;
+const FIELD_X_CELLS=9, FIELD_Y_CELLS=11,CELL_SIZE=50, WIN = 1, DRAW = 0, LOSE = -1, NOSYNC = 2,MONEY_BONUS=3;
 
 irnd = function(min,max) {	
     min = Math.ceil(min);
@@ -1532,8 +1532,26 @@ game={
 	
 	add_bonuses(field){
 		
-		//денежные бонусы
+		
+		
+		
+		//ракеты
 		let bonuses_placed=0;
+		while(bonuses_placed===0){			
+			const y=irnd(0,10);
+			const x=irnd(0,8);			
+			const cell=field.map[y][x];
+			if (cell.type==='empty'){
+				cell.type='bonus'
+				cell.bonus_type=['multi_3','multi_5','multi_9'][irnd(0,2)];
+				bonuses_placed=1;				
+			}			
+		}			
+		
+		if (game_platform==='VK') return;
+		
+		//денежные бонусы
+		bonuses_placed=0;
 		while(bonuses_placed<3){			
 			const y=irnd(0,10);
 			const x=irnd(0,8);			
@@ -1545,18 +1563,7 @@ game={
 			}			
 		}			
 
-		//ракеты
-		bonuses_placed=0;
-		while(bonuses_placed===0){			
-			const y=irnd(0,10);
-			const x=irnd(0,8);			
-			const cell=field.map[y][x];
-			if (cell.type==='empty'){
-				cell.type='bonus'
-				cell.bonus_type=['multi_3','multi_5','multi_9'][irnd(0,2)];
-				bonuses_placed=1;				
-			}			
-		}	
+
 		
 	},
 	
@@ -1932,7 +1939,7 @@ game={
 				this.add_info(`Бонус +${MONEY_BONUS}$`,3000);				
 			}else{
 				cell.other_icon.texture=gres['bonus_'+cell.bonus_type+'_img'].texture;					
-				armory.add_arms(cell.bonus_type,5);
+				armory.add_arms(cell.bonus_type,1);
 				this.add_info(`Бонус - бомбы!`,3000);		
 			}
 			
@@ -4396,8 +4403,7 @@ async function init_game_env(lang) {
 	app = new PIXI.Application({width:M_WIDTH, height:M_HEIGHT,antialias:false,backgroundColor : 0x152543});
 	const c = document.body.appendChild(app.view);
 	c.style["boxShadow"] = "0 0 15px #000000";
-	
-	
+		
 	//события изменения окна
 	resize();
 	window.addEventListener('resize', resize);
@@ -4520,10 +4526,10 @@ async function init_game_env(lang) {
 	my_data.rating = (other_data && other_data.rating) || 1400;
 	my_data.games = (other_data && other_data.games) || 0;
 	my_data.name = (other_data && other_data.name) || my_data.name;
-	my_data.arms = (other_data && other_data.arms) || [{type:'combo',config:[3,2,2],num:3},{type:'multi',config:5,num:4}];
+	my_data.arms = (other_data && other_data.arms) || {'combo_0':999,'combo_332':15,'combo_324':15};
 	my_data.money = (other_data && other_data.money) || 100;
 		
-	my_data.arms={'combo_0':999,'combo_332':15,'combo_454':15,'multi_5':13,'multi_9':23};
+	//my_data.arms={'combo_0':999,'combo_332':15,'combo_324':15};
 		
 	//устанавлием имена
 	make_text(objects.id_name,my_data.name,150);

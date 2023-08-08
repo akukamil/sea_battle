@@ -2189,11 +2189,11 @@ game={
 
 shop={
 	
-	data:[{bomb_name:'combo_3',amount:5,price:10},
-			{bomb_name:'combo_32',amount:5,price:20},
-			{bomb_name:'combo_33',amount:5,price:30},
-			{bomb_name:'combo_322',amount:5,price:50},
-			{bomb_name:'combo_332',amount:5,price:99}],
+	data:[{bomb_name:'combo_3',amount:10,price:10},
+			{bomb_name:'combo_32',amount:10,price:13},
+			{bomb_name:'combo_33',amount:10,price:18},
+			{bomb_name:'combo_322',amount:10,price:22},
+			{bomb_name:'combo_332',amount:10,price:30}],
 	
 	async activate(){		
 		
@@ -2224,6 +2224,11 @@ shop={
 	
 	buy_down(card){
 		
+		if (game_platform==='VK'){
+			this.buy_vk(card);
+			return;
+		}
+		
 		const bomb_name=this.data[card.id].bomb_name;
 		const bombs_num=this.data[card.id].amount;
 		const price=this.data[card.id].price;
@@ -2244,6 +2249,20 @@ shop={
 		fbs.ref('players/' + my_data.uid + '/arms').set(my_data.arms);
 		
 	},
+	
+	async buy_vk(card){
+		
+		const bomb_name=this.data[card.id].bomb_name;		
+
+		try {
+			const data = await bridge.send('VKWebAppShowOrderBox', { type: 'item', item: bomb_name});
+			console.log('Покупка состоялась.', data);
+		} catch (e) {
+			console.log('Ошибка!', e);
+		}
+
+		
+	}
 		
 	exit_button_down(){
 		

@@ -479,13 +479,14 @@ class shop_card_class extends PIXI.Container{
 		if (game_platform==='VK'){
 			
 			this.vk_voice.visible=true;
+			this.t_price.x=240;			
 			this.vk_voice.x=this.t_price.x+this.t_price.width-4;	
-			this.t_price.x=240;
+
 		}else{
 			
 			this.vk_voice.visible=false;
+			this.t_price.x=245;			
 			this.t_price.text+='$';
-			this.t_price.x=245;
 		}
 		
 		

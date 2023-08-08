@@ -2255,7 +2255,7 @@ shop={
 		const bomb_name=this.data[card.id].bomb_name;		
 
 		try {
-			const data = await bridge.send('VKWebAppShowOrderBox', { type: 'item', item: bomb_name});
+			const data = await vkBridge.send('VKWebAppShowOrderBox', { type: 'item', item: bomb_name});
 			console.log('Покупка состоялась.', data);
 		} catch (e) {
 			console.log('Ошибка!', e);

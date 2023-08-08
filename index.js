@@ -425,39 +425,41 @@ class shop_card_class extends PIXI.Container{
 		
 		
 		this.t_price=new PIXI.BitmapText('0', {fontName: 'mfont',fontSize: 35,align: 'center'});
-		this.t_price.anchor.set(0.5,0.5);
+		this.t_price.anchor.set(0,0.5);
 		this.t_price.tint=0xffff00;
 		this.t_price.rotation=0;
-		this.t_price.x=310;
+		this.t_price.x=330;
 		this.t_price.y=65;	
+		
+		this.vk_voice=new PIXI.Sprite(gres.vk_voice_img.texture);
+		this.vk_voice.anchor.set(0,0.5);
+		this.vk_voice.tint=0xffff00;
+		this.vk_voice.rotation=0;
+		this.vk_voice.x=322;
+		this.vk_voice.y=66;	
+		this.vk_voice.width=30;
+		this.vk_voice.height=30;		
 		
 		this.t_combo=new PIXI.BitmapText('0', {fontName: 'mfont',fontSize: 38});
 		this.t_combo.anchor.set(0,0.5);
 		this.t_combo.x=20;
 		this.t_combo.y=100;	
 
-		this.t_amount=new PIXI.BitmapText('50', {fontName: 'mfont',fontSize: 50,align: 'center'});
+		this.t_amount=new PIXI.BitmapText('50', {fontName: 'mfont',fontSize: 40,align: 'center'});
 		this.t_amount.anchor.set(0.5,0.5);
-		this.t_amount.x=170;
-		this.t_amount.y=65;	
+		this.t_amount.x=135;
+		this.t_amount.y=35;	
 		
-		
-		this.buy_button=new PIXI.Sprite(gres.shop_card_buy_button.texture);
-		this.buy_button.x=230;
-		this.buy_button.y=30;	
-		this.buy_button.width=150;
-		this.buy_button.height=70;	
+			
 
 		
-
-		
-		this.addChild(this.bcg,this.buy_button,this.t_price,this.t_combo,this.t_amount);
+		this.addChild(this.bcg,this.t_price,this.vk_voice,this.t_combo,this.t_amount);
 
 	}
 	
 	update(){
 		
-		this.t_amount.text='x'+(my_data.arms[this.bomb_name]||0)+['шт.','pcs.'][LANG];	
+		this.t_amount.text=(my_data.arms[this.bomb_name]||0)+['шт','pcs'][LANG];	
 		
 	}
 		
@@ -472,9 +474,22 @@ class shop_card_class extends PIXI.Container{
 		
 		this.t_combo.text=['Комбо:','Combo:'][LANG]+bomb_config.split('').join('-');		
 
-		this.t_price.text=`+${data.amount}шт/${data.price}$`;
+		this.t_price.text=`+${data.amount}шт/${data.price}`;
 		
-		this.t_amount.text='x'+(my_data.arms[data.bomb_name]||0)+['шт.','pcs.'][LANG];				
+		if (game_platform==='VK'){
+			
+			this.vk_voice.visible=true;
+			this.vk_voice.x=this.t_price.x+this.t_price.width-4;	
+			this.t_price.x=240;
+		}else{
+			
+			this.vk_voice.visible=false;
+			this.t_price.text+='$';
+			this.t_price.x=245;
+		}
+		
+		
+		this.t_amount.text=(my_data.arms[data.bomb_name]||0)+['шт','pcs'][LANG];				
 	
 	}
 		
@@ -2178,7 +2193,7 @@ shop={
 			{bomb_name:'combo_32',amount:5,price:20},
 			{bomb_name:'combo_33',amount:5,price:30},
 			{bomb_name:'combo_322',amount:5,price:50},
-			{bomb_name:'combo_332',amount:5,price:100}],
+			{bomb_name:'combo_332',amount:5,price:99}],
 	
 	async activate(){		
 		
@@ -2191,6 +2206,7 @@ shop={
 
 		}		
 
+		objects.shop_money.visible=!(game_platform==='VK')
 		objects.shop_money.text=my_data.money+'$';
 		
 	},

@@ -2253,11 +2253,17 @@ shop={
 	
 	async buy_vk(card){
 		
-		const bomb_name=this.data[card.id].bomb_name;		
+		const bomb_name=this.data[card.id].bomb_name;	
+		const bombs_num=this.data[card.id].amount;
 
 		try {
 			const data = await vkBridge.send('VKWebAppShowOrderBox', { type: 'item', item: bomb_name});
-			console.log('Покупка состоялась.', data);
+			if (data.success){
+				sound.play('money');
+				armory.add_arms(bomb_name, bombs_num);
+				card.update();
+				fbs.ref('players/' + my_data.uid + '/arms').set(my_data.arms);
+			}
 		} catch (e) {
 			console.log('Ошибка!', e);
 		}

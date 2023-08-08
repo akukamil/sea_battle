@@ -2262,7 +2262,7 @@ shop={
 		}
 
 		
-	}
+	},
 		
 	exit_button_down(){
 		

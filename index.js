@@ -35,9 +35,6 @@ class player_mini_card_class extends PIXI.Container {
 		this.bcg.buttonMode=true;
 		this.bcg.pointerdown=function(){lobby.card_down(id)};
 		
-		
-		
-		
 		this.table_rating_hl=new PIXI.Sprite();
 		this.table_rating_hl.width=210;
 		this.table_rating_hl.height=100;
@@ -65,7 +62,7 @@ class player_mini_card_class extends PIXI.Container {
 		this.t_rating.anchor.set(0.5,0.5);
 		this.t_rating.x=70;
 		this.t_rating.y=150;		
-		this.t_rating.tint=0xffff00;
+		this.t_rating.tint=0x333300;
 
 		//аватар первого игрока
 		this.avatar1=new PIXI.Sprite();
@@ -198,15 +195,7 @@ class field_class extends PIXI.Container{
 	constructor() {
 		
 		super();	
-		
-		//this.tile_bcg=new PIXI.TilingSprite(gres.tile_bcg.texture);
-		//this.tile_bcg.width=450;
-		//this.tile_bcg.height=550;
-		//this.tile_bcg.x=20;
-		//this.tile_bcg.y=20;
-		//this.addChild(this.tile_bcg);
-		
-		
+				
 		this.bcg = new PIXI.Sprite(gres.field_bcg.texture);
 		this.bcg.width=490;
 		this.bcg.height=580;

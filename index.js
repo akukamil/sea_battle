@@ -1496,7 +1496,10 @@ game={
 		if (objects.rules_cont.visible)
 			objects.rules_cont.visible=false;
 		
-				
+		//если открыт лидерборд то закрываем его
+		if (objects.shop_cont.visible)
+			shop.close();
+		
 		sound.play('note');
 
 		some_process.game_process=this.process.bind(this);

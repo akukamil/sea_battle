@@ -1452,14 +1452,20 @@ game={
 		rnd.reset(seed);	
 		
 		const ships_conf=[4,4,4,4,3,3,3,3,2,2,1,1,1];
+		
+
+
+		
 		if (!my_conf) my_conf=map_creator.run(ships_conf);
 		if (!opp_conf) opp_conf=map_creator.run(ships_conf);
 		
+		//маленькие иконки кораблей
+		this.prepare_small_icons(my_conf.map(e=>e.length/2));			
+				
 		//обновляем арсенал
 		armory.init();
 		
-		//маленькие иконки кораблей
-		this.prepare_small_icons(ships_conf);
+
 
 		objects.desktop.texture=gres.desktop.texture;
 		anim2.add(objects.desktop,{alpha:[0,1]}, true, 0.5,'linear');

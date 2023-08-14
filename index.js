@@ -3428,7 +3428,7 @@ lobby={
 			break;
 
 			case "b":
-				return gres.mini_player_card_online.texture;
+				return gres.mini_player_card_bot.texture;
 			break;
 
 			case "p":
@@ -4655,7 +4655,6 @@ async function load_resources() {
 	
 	await loading_elements();	
 	
-
 	
 	game_res.add('m2_font', git_src+'fonts/balsamic/font.fnt');
 

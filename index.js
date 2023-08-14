@@ -48,6 +48,11 @@ class player_mini_card_class extends PIXI.Container {
 		this.avatar_frame.x=25;
 		this.avatar_frame.y=30;
 		this.avatar_frame.width=this.avatar_frame.height=90;
+		
+		this.table_frame=new PIXI.Sprite(gres.table_card_frame.texture);
+		this.table_frame.x=10;
+		this.table_frame.y=40;
+		this.table_frame.width=this.table_frame.height=120;
 				
 		this.name="";
 		this.t_name=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 22,align: 'center'});
@@ -66,33 +71,33 @@ class player_mini_card_class extends PIXI.Container {
 
 		//аватар первого игрока
 		this.avatar1=new PIXI.Sprite();
-		this.avatar1.x=22;
-		this.avatar1.y=18;
-		this.avatar1.width=this.avatar1.height=64;
+		this.avatar1.x=20;
+		this.avatar1.y=50;
+		this.avatar1.width=this.avatar1.height=60;
 
 		//аватар второго игрока
 		this.avatar2=new PIXI.Sprite();
-		this.avatar2.x=122;
-		this.avatar2.y=18;
-		this.avatar2.width=this.avatar2.height=64;
+		this.avatar2.x=60;
+		this.avatar2.y=70;
+		this.avatar2.width=this.avatar2.height=60;
 		
-		this.t_rating1=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 25,align: 'center'});
-		this.t_rating1.tint=0xffff00;
-		this.t_rating1.anchor.set(0.5,0);
-		this.t_rating1.x=55;
-		this.t_rating1.y=60;
+		this.t_rating1=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 35,align: 'center'});
+		this.t_rating1.tint=0x555500;
+		this.t_rating1.anchor.set(0.5,0.5);
+		this.t_rating1.x=70;
+		this.t_rating1.y=25;
 
-		this.t_rating2=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 25,align: 'center'});
-		this.t_rating2.tint=0xffff00;
-		this.t_rating2.anchor.set(0.5,0);
-		this.t_rating2.x=155;
-		this.t_rating2.y=60;
+		this.t_rating2=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 35,align: 'center'});
+		this.t_rating2.tint=0x555500;
+		this.t_rating2.anchor.set(0.5,0.5);
+		this.t_rating2.x=70;
+		this.t_rating2.y=155;
 		
 		
 		this.name1="";
 		this.name2="";
 
-		this.addChild(this.bcg,this.table_rating_hl,this.avatar, this.avatar1, this.avatar2,this.t_rating,this.t_rating1,this.t_rating2, this.t_name,this.avatar_frame);
+		this.addChild(this.bcg,this.avatar, this.avatar1, this.avatar2,this.t_rating,this.t_rating1,this.t_rating2, this.t_name,this.table_frame,this.avatar_frame);
 	}
 
 }
@@ -904,7 +909,7 @@ sound={
 
 music={
 	
-	on:1,
+	on:0,
 	
 	activate(){
 		
@@ -3461,11 +3466,11 @@ lobby={
 				//убираем элементы свободного стола
 				objects.mini_cards[i].t_rating.visible = false;
 				objects.mini_cards[i].avatar.visible = false;
-				//objects.mini_cards[i].avatar_frame.visible = false;
+				objects.mini_cards[i].avatar_frame.visible = false;
 				objects.mini_cards[i].t_name.visible = false;
 
 				//Включаем элементы стола 
-				objects.mini_cards[i].table_rating_hl.visible=true;
+				objects.mini_cards[i].table_frame.visible=true;
 				objects.mini_cards[i].t_rating1.visible = true;
 				objects.mini_cards[i].t_rating2.visible = true;
 				objects.mini_cards[i].avatar1.visible = true;
@@ -3527,12 +3532,12 @@ lobby={
 				objects.mini_cards[i].t_rating2.visible = false;
 				objects.mini_cards[i].avatar1.visible = false;
 				objects.mini_cards[i].avatar2.visible = false;
-				objects.mini_cards[i].table_rating_hl.visible=false;
+				objects.mini_cards[i].table_frame.visible=false;
 				
 				//включаем элементы свободного стола
 				objects.mini_cards[i].t_rating.visible = true;
 				objects.mini_cards[i].avatar.visible = true;
-				//objects.mini_cards[i].avatar_frame.visible = true;
+				objects.mini_cards[i].avatar_frame.visible = true;
 				objects.mini_cards[i].t_name.visible = true;
 
 				objects.mini_cards[i].name=params.name;
@@ -3642,7 +3647,7 @@ lobby={
 	
 	show_table_dialog(card_id) {
 					
-		
+		return;
 		//если какая-то анимация или открыт диалог
 		if (anim2.any_on() || pending_player!=='') {
 			sound.play('locked');

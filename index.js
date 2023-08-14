@@ -909,7 +909,7 @@ sound={
 
 music={
 	
-	on:0,
+	on:1,
 	
 	activate(){
 		

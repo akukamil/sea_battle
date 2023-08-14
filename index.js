@@ -1120,7 +1120,7 @@ online_game={
 	},	
 	
 	switch_timer(on) {
-		
+		//return
 		clearTimeout(this.timer_id);
 				
 		if(!on)	return;
@@ -1869,7 +1869,7 @@ game={
 				const tx=t[1]+move_data.aimed_x;
 				
 				if (ty>=0&&ty<FIELD_Y_CELLS&&tx>=0&&tx<FIELD_X_CELLS)
-					this.start_move(field,ty,tx,{combo:[0],num:0});
+					this.start_move(field,ty,tx,{combo:'0',num:0});
 			}
 		}
 		
@@ -1996,7 +1996,8 @@ game={
 			this.move_result_info.hited++;
 			
 			this.add_explosion(iy,ix);
-			if (combo_data.num<combo_data.combo.length)
+			console.log('hited:',iy,ix,combo_data);
+			if (combo_data.combo!=='0'&&combo_data.num<combo_data.combo.length)
 				this.resume_combo(field,iy,ix,combo_data);
 		}
 	
@@ -2059,8 +2060,7 @@ game={
 				const cell=field.map[y][x];
 				if (cell.type==='empty'||cell.type==='ship_part'||cell.type==='bonus'){
 					const rnd_next=rnd.next();
-					targets.push([y,x,rnd_next]);						
-					console.log(rnd_next);
+					targets.push([y,x,rnd_next]);					
 				}
 				
 			}
@@ -2072,7 +2072,7 @@ game={
 			
 			const upd_combo=JSON.parse(JSON.stringify(combo_data));
 			upd_combo.num++;
-			
+			console.log('target:' ,targets[i][0],targets[i][1]);
 			field.map[targets[i][0]][targets[i][1]].type==='target';
 			this.send_bullet(field,iy,ix,targets[i][0],targets[i][1],upd_combo);
 		}

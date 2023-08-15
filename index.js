@@ -102,41 +102,29 @@ class player_mini_card_class extends PIXI.Container {
 
 }
 
-class lb_player_card_class extends PIXI.Container{
+class lb_avatar_class extends PIXI.Container{
 
-	constructor(x,y,place) {
+	constructor(size,frame_texture) {
 		super();
 
-		this.bcg=new PIXI.Sprite(game_res.resources.lb_player_card_bcg.texture);
-		this.bcg.interactive=true;
-		this.bcg.pointerover=function(){this.tint=0x55ffff};
-		this.bcg.pointerout=function(){this.tint=0xffffff};
-		this.bcg.width = 370;
-		this.bcg.height = 70;
-
-		this.place=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 25,align: 'center'});
-		this.place.tint=0xffff00;
-		this.place.x=20;
-		this.place.y=22;
-
+		this.avatar_mask=new PIXI.Graphics();
+		this.avatar_mask.beginFill(0xDE3249);
+		this.avatar_mask.drawCircle(size/2, size/2, size/2);
+		this.avatar_mask.endFill();		
+		
 		this.avatar=new PIXI.Sprite();
-		this.avatar.x=43;
-		this.avatar.y=10;
-		this.avatar.width=this.avatar.height=48;
+		this.avatar.width = size;
+		this.avatar.height = size;
+		this.avatar.mask=this.avatar_mask;
+		
+		
+		this.avatar_frame=new PIXI.Sprite(frame_texture);
+		this.avatar_frame.width = size+20;
+		this.avatar_frame.height = size+20;
+		this.avatar_frame.x = -10;
+		this.avatar_frame.y = -10;
 
-
-		this.name=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 25,align: 'center'});
-		this.name.tint=0xdddddd;
-		this.name.x=105;
-		this.name.y=22;
-
-
-		this.rating=new PIXI.BitmapText('', {fontName: 'mfont',fontSize: 25,align: 'center'});
-		this.rating.x=298;
-		this.rating.tint=rgb_to_hex(255,242,204);
-		this.rating.y=22;
-
-		this.addChild(this.bcg,this.place, this.avatar, this.name, this.rating);
+		this.addChild(this.avatar_mask,this.avatar, this.avatar_frame);
 	}
 
 
@@ -1494,7 +1482,7 @@ game={
 		this.opponent.activate();
 
 		//если открыт лидерборд то закрываем его
-		if (objects.lb_1_cont.visible===true)
+		if (objects.lb_cont.visible===true)
 			lb.close();
 		
 		//если открыт лидерборд то закрываем его
@@ -1924,6 +1912,7 @@ game={
 					
 		const cell=field.map[iy][ix];
 		const cell_type=cell.type;
+		console.log('Target: ',iy,ix);
 		if (cell_type==='empty'){
 			this.move_result_info.missed++;
 			sound.play('splash');
@@ -3057,26 +3046,12 @@ lb={
 	cards_pos: [[370,10],[380,70],[390,130],[380,190],[360,250],[330,310],[290,370]],
 	last_update:0,
 
-	show: function() {
+	show() {
 
 		objects.desktop.texture=game_res.resources.lb_bcg.texture;
 		anim2.add(objects.desktop,{alpha:[0,1]}, true, 0.5,'linear');	
 		
-
-		anim2.add(objects.lb_1_cont,{x:[-150, objects.lb_1_cont.sx]}, true, 0.5,'easeOutBack');
-		anim2.add(objects.lb_2_cont,{x:[-150, objects.lb_2_cont.sx]}, true, 0.5,'easeOutBack');
-		anim2.add(objects.lb_3_cont,{x:[-150, objects.lb_3_cont.sx]}, true, 0.5,'easeOutBack');
-		anim2.add(objects.lb_cards_cont,{x:[450, 0]}, true, 0.5,'easeOutCubic');
-				
-		objects.lb_cards_cont.visible=true;
-		objects.lb_back_button.visible=true;
-
-		for (let i=0;i<7;i++) {
-			objects.lb_cards[i].x=this.cards_pos[i][0];
-			objects.lb_cards[i].y=this.cards_pos[i][1];
-			objects.lb_cards[i].place.text=(i+4)+".";
-
-		}
+		anim2.add(objects.lb_cont,{x:[450, 0]}, true, 0.5,'easeOutCubic');
 
 		if (Date.now()-this.last_update>120000){
 			this.update();			
@@ -3086,18 +3061,21 @@ lb={
 
 	},
 
-	close: function() {
+	close() {
 
 
-		objects.lb_1_cont.visible=false;
-		objects.lb_2_cont.visible=false;
-		objects.lb_3_cont.visible=false;
-		objects.lb_cards_cont.visible=false;
-		objects.lb_back_button.visible=false;
+		objects.lb_cont.visible=false;
 
 	},
+	
+	exit_down(){
+		
+		this.close();
+		main_menu.activate();
+		
+	},
 
-	back_button_down: function() {
+	back_button_down() {
 
 		if (anim2.any_on()===true) {
 			sound.play('locked');
@@ -3111,68 +3089,48 @@ lb={
 
 	},
 
-	update: function () {
-
-		fbs.ref("players").orderByChild('rating').limitToLast(20).once('value').then((snapshot) => {
+	async update () {
 
 
-			raw_leaders_data = snapshot.val();
-			if (raw_leaders_data===null) {
-			  //console.log("Что-то не получилось получить данные о рейтингах");
-			}
-			else {
+		let leaders_data=await fbs.ref('players').orderByChild('rating').limitToLast(20).once('value');
+		leaders_data=leaders_data.val();
 
-				var leaders = [];
-				Object.keys(raw_leaders_data).forEach(uid => {
-					
-					if (raw_leaders_data[uid].name!=="" && raw_leaders_data[uid].name!=='')
-						leaders.push([raw_leaders_data[uid].name, raw_leaders_data[uid].rating, raw_leaders_data[uid].pic_url, uid]);
-				});
+		if (leaders_data===null) {
+		  //console.log("Что-то не получилось получить данные о рейтингах");
+		  return
+		}
+		
 
-
-				leaders.sort(function(a, b) {	return b[1] - a[1];});
-
-				//создаем загрузчик топа
-				var loader = new PIXI.Loader();
-
-				var len=Math.min(10,leaders.length);
-
-				//загружаем тройку лучших
-				for (let i=0;i<3;i++) {
-					make_text(objects['lb_'+(i+1)+'_name'], leaders[i][0],180);					
-					objects['lb_'+(i+1)+'_rating'].text = leaders[i][1];
-					loader.add('leaders_avatar_'+i, leaders[i][2],{loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE});
-					
-					objects['lb_'+(i+1)+'_cont'].interactive = true;
-					objects['lb_'+(i+1)+'_cont'].pointerdown = function(){lobby.show_invite_dialog_from_lb(leaders[i][0],leaders[i][1],leaders[i][3])};
-				};
-
-				//загружаем остальных
-				for (let i=3;i<10;i++) {
-					let fname=leaders[i][0];
-
-					make_text(objects.lb_cards[i-3].name,fname,180);
-
-					objects.lb_cards[i-3].rating.text=leaders[i][1];
-					objects.lb_cards[i-3].interactive = true;
-					objects.lb_cards[i-3].pointerdown = function(){lobby.show_invite_dialog_from_lb(leaders[i][0],leaders[i][1],leaders[i][3])};
-					loader.add('leaders_avatar_'+i, leaders[i][2],{loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE});
-				};
-
-				loader.load();
-
-				//показываем аватар как только он загрузился
-				loader.onProgress.add((loader, resource) => {
-					let lb_num=Number(resource.name.slice(-1));
-					if (lb_num<3)
-						objects['lb_'+(lb_num+1)+'_avatar'].texture=resource.texture
-					else
-						objects.lb_cards[lb_num-3].avatar.texture=resource.texture;
-				});
-
-			}
-
+		var leaders = [];
+		Object.keys(leaders_data).forEach(uid => {				
+			if (leaders_data[uid].name!=='')
+				leaders.push([leaders_data[uid].name, leaders_data[uid].rating, leaders_data[uid].pic_url, uid]);
 		});
+
+		//сортируем по рейтингу
+		leaders.sort(function(a, b) {	return b[1] - a[1];});
+
+		//создаем загрузчик топа
+		var loader = new PIXI.Loader();
+
+		var len=Math.min(10,leaders.length);
+
+		//загружаем тройку лучших
+		for (let i=0;i<10;i++) {
+			make_text(objects['lb_player_name'+i], leaders[i][0],180);					
+			objects['lb_player_rating'+i].text = leaders[i][1];				
+			loader.add('leaders_avatar_'+i, leaders[i][2],{loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE});
+		};
+
+
+		loader.load();
+
+		//показываем аватар как только он загрузился
+		loader.onProgress.add((loader, resource) => {
+			let lb_num=Number(resource.name.slice(-1));
+			objects['lb_avatar'+lb_num].avatar.texture=resource.texture;
+		});
+
 
 	}
 
@@ -4532,7 +4490,7 @@ async function init_game_env(lang) {
 	my_data.arms = (other_data && other_data.arms) || {'combo_0':999,'combo_332':15,'combo_324':15};
 	my_data.money = (other_data && other_data.money) || 100;
 		
-	//my_data.arms={'combo_0':999,'combo_332':15,'combo_324':15};
+	//my_data.arms={'combo_0':999,'combo_332':115,'multi_9':115,'combo_442':115};
 		
 	//устанавлием имена
 	make_text(objects.id_name,my_data.name,150);

@@ -1444,10 +1444,7 @@ game={
 		rnd.reset(seed);	
 		
 		const ships_conf=[4,4,4,4,3,3,3,3,2,2,1,1,1];
-		
-
-
-		
+				
 		if (!my_conf) my_conf=map_creator.run(ships_conf);
 		if (!opp_conf) opp_conf=map_creator.run(ships_conf);
 		
@@ -2778,8 +2775,20 @@ req_dialog={
 
 		//отправляем информацию о согласии играть с идентификатором игры
 		game_id=~~(Math.random()*99999);
-		const my_conf=map_creator.run([4,4,3,3,3,2,2,1,1,1]);
-		const opp_conf=map_creator.run([4,4,3,3,3,2,2,1,1,1]);
+		
+		
+		const map_opts=[
+			[4,4,3,3,3,2,2,1,1,1],
+			[4,4,4,4,4,4],
+			[3,3,3,3,3,3,3,3],
+			[4,4,1,1,1,1,1,1,1,1,1,1,1,1],
+		]
+		
+		const map_conf=map_opts[irnd(0,map_opts.length-1)];
+		
+		
+		const my_conf=map_creator.run(map_conf);
+		const opp_conf=map_creator.run(map_conf);
 		const seed=irnd(100,999999);
 		fbs.ref("inbox/"+opp_data.uid).set({sender:my_data.uid,message:"ACCEPT",tm:Date.now(),my_conf,opp_conf,seed});
 

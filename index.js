@@ -302,8 +302,7 @@ class field_class extends PIXI.Container{
 		return true;
 	}
 	
-	print_map(){
-		
+	print_map(){		
 		
 		const newArray = this.map.map(arr => arr.map(obj => obj.ship_id));
 		console.log(newArray);
@@ -1457,8 +1456,6 @@ game={
 				
 		//обновляем арсенал
 		armory.init();
-		
-
 
 		objects.desktop.texture=gres.desktop.texture;
 		anim2.add(objects.desktop,{alpha:[0,1]}, true, 0.5,'linear');
@@ -1580,6 +1577,7 @@ game={
 		let ypos=110;
 		let prv_ship=ships_conf[0];
 		let end_x=0;
+		let ship_id=0;
 		for(let ship of ships_conf){			
 
 			for (let s=0;s<ship;s++){
@@ -1588,6 +1586,8 @@ game={
 				icon.x=xpos;
 				icon.visible=true;
 				icon.ship=ship;
+				icon.ship_id=ship_id;
+				
 				xpos+=ship_part_space;
 				i++;
 			}							
@@ -1598,6 +1598,8 @@ game={
 				row++;
 				ypos+=row_space;
 			}
+			
+			ship_id++;
 		}
 			
 
@@ -1606,6 +1608,7 @@ game={
 		row=0;
 		xpos=235;
 		ypos=110;
+		ship_id=0;
 		prv_ship=ships_conf[0];
 		for(let ship of ships_conf){			
 
@@ -1615,6 +1618,7 @@ game={
 				icon.x=xpos;
 				icon.visible=true;
 				icon.ship=ship;
+				icon.ship_id=ship_id;
 				xpos-=ship_part_space;
 				i++;
 			}	
@@ -1623,7 +1627,9 @@ game={
 				xpos=235;
 				row++;
 				ypos+=row_space;
-			}			
+			}	
+			
+			ship_id++;
 		}
 		
 	},
@@ -1886,11 +1892,11 @@ game={
 		
 	},
 	
-	update_mini_icons(field, ship){
+	update_mini_icons(field, ship_id){
 				
 		const icons=[objects.my_mini_icons,objects.opp_mini_icons][+(field===objects.opp_field)];
 		for (let icon of icons){
-			if (icon.ship===ship && icon.on){
+			if (icon.ship_id===ship_id && icon.on){
 				icon.texture=gres.miniship_off_img.texture;
 				icon.on=0;
 				return;
@@ -1952,6 +1958,7 @@ game={
 			cell.other_icon.texture=gres.ship_spotted_img.texture;
 			cell.other_icon.visible=true;
 			cell.type='ship_part_hited';
+			const ship_id=cell.ship_id;
 			const ship_data=field.ships[cell.ship_id];
 			const ship_size=ship_data.pos.length/2;
 			ship_data.hits++;
@@ -1973,7 +1980,7 @@ game={
 						anim2.add(objects.mega_combo,{alpha:[0.5,0],scale_xy:[0.5,1]}, false, 1,'easeOutCubic');					
 			}
 			
-			this.update_mini_icons(field,ship_size);
+			this.update_mini_icons(field,ship_id);
 			
 			if (ship_data.hits===ship_size){
 				sound.play('sos');

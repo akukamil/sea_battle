@@ -273,6 +273,7 @@ class field_class extends PIXI.Container{
 				cell.type='empty';
 				cell.other_icon.visible=false;
 				cell.ship_part.visible=false;
+				cell.alpha=1;
 			}
 		}
 			

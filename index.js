@@ -455,7 +455,7 @@ class shop_card_class extends PIXI.Container{
 		
 		this.t_combo.text=['Комбо:','Combo:'][LANG]+bomb_config.split('').join('-');		
 
-		this.t_price.text=`+${data.amount}шт/${data.price}`;
+		this.t_price.text=`${data.amount}${['шт','pcs'][LANG]}/${data.price}`;
 		
 		if (game_platform==='VK'){
 			
@@ -1717,7 +1717,7 @@ game={
 			anim2.add(objects.my_field,{alpha:[1,0]}, false, 0.25,'linear');	
 			anim2.add(objects.opp_field,{alpha:[0,1]}, true, 0.25,'linear');	
 			this.start_episode=false;
-			this.add_info('Преход хода к игроку...',999);
+			this.add_info(['Переход хода к игроку...','Players move...'][LANG],999);
 			objects.opp_card_cont.alpha=0.5;
 			objects.my_card_cont.alpha=1;
 		}
@@ -1735,7 +1735,7 @@ game={
 			anim2.add(objects.opp_field,{alpha:[1,0]}, false, 0.25,'linear');	
 			anim2.add(objects.my_field,{alpha:[0,1]}, true, 0.25,'linear');	
 			this.start_episode=false;
-			this.add_info('Преход хода к сопернику...',999);
+			this.add_info(['Переход хода к сопернику...','Opponents turn...'][LANG],999);
 			objects.opp_card_cont.alpha=1;
 			objects.my_card_cont.alpha=0.5;
 		}
@@ -1829,7 +1829,7 @@ game={
 			console.log('P_wait_opp_move');	
 			this.start_episode=false;
 			if (this.opponent===bot_game) this.opponent.send_move();
-			this.add_info('Ждем соперника...',999);
+			this.add_info(['Ждем соперника...','Waiting...'][LANG],999);
 			
 			my_turn=0;
 			this.opponent.switch_timer(1);
@@ -1931,11 +1931,11 @@ game={
 			if (cell.bonus_type==='money'){
 				cell.other_icon.texture=gres.bonus_money_img.texture;				
 				shop.add_money_bonus(MONEY_BONUS);
-				this.add_info(`Бонус +${MONEY_BONUS}$`,3000);				
+				this.add_info(`${['Бонус','Bonus'][LANG]}+${MONEY_BONUS}$`,3000);				
 			}else{
 				cell.other_icon.texture=gres['bonus_'+cell.bonus_type+'_img'].texture;					
 				armory.add_arms(cell.bonus_type,1);
-				this.add_info(`Бонус - бомбы!`,3000);		
+				this.add_info(['Бонус - бомбы!','Bonus - bombs!'][LANG],3000);		
 			}
 			
 
@@ -2487,7 +2487,8 @@ ad={
 		
 	show : function() {
 		
-		if (game_platform==="YANDEX") {			
+		if (game_platform==="YANDEX") {	
+			return;
 			//показываем рекламу
 			window.ysdk.adv.showFullscreenAdv({
 			  callbacks: {
@@ -2782,6 +2783,7 @@ req_dialog={
 			[4,4,4,4,4],
 			[3,3,3,3,3,3,3,3],
 			[4,4,4,1,1,1,1,1,1,1,1,1,1,1,1],
+			[4,4,4,4,3,3,3,3,2,2,1,1,1],
 		]
 		
 		const map_conf=map_opts[irnd(0,map_opts.length-1)];
@@ -2928,7 +2930,7 @@ main_menu={
 		await this.close();
 		
 		//заполняем данные бот-оппонента
-		objects.opp_card_name.text='BOT';
+		objects.opp_card_name.text=['Бот','Bot'][LANG];
 		objects.opp_card_rating.text='1400';
 		objects.opp_avatar.texture=gres.pc_icon.texture;	
 		
@@ -4374,7 +4376,7 @@ async function init_game_env(lang) {
 	await define_platform_and_language();
 	console.log(game_platform, LANG);
 						
-	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style></div><div id="m_progress">  <div id="m_bar"></div></div>';
+	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style>';
 	
 	//Сцена и пикси
 	app = new PIXI.Application({width:M_WIDTH, height:M_HEIGHT,antialias:false,backgroundColor : 0x152543});
@@ -4577,8 +4579,9 @@ async function init_game_env(lang) {
 
 async function loading_elements(){
 		
-	game_res.add('loading_text',git_src+'res/LOADING/loading_text.png');
-	game_res.add('complete_text',git_src+'res/LOADING/complete_text.png');
+	const m_lang=['ru','en'][LANG];
+	game_res.add('loading_text',git_src+`res/LOADING/loading_text_${m_lang}.png`);
+	game_res.add('complete_text',git_src+`res/LOADING/complete_text_${m_lang}.png`);
 	await new Promise((resolve, reject)=> game_res.load(resolve))
 		
 	const lw=250;

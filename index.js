@@ -4509,7 +4509,7 @@ async function init_game_env(lang) {
 	my_data.arms = (other_data && other_data.arms) || {'combo_0':999,'combo_332':15,'combo_324':15};
 	my_data.money = (other_data && other_data.money) || 100;
 		
-	//my_data.arms={'combo_0':999,'combo_332':115,'multi_9':115,'combo_442':115};
+	my_data.arms.combo_0=999;
 		
 	//устанавлием имена
 	make_text(objects.id_name,my_data.name,150);

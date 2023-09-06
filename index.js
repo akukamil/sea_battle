@@ -1736,7 +1736,7 @@ game={
 			anim2.add(objects.opp_field,{alpha:[1,0]}, false, 0.25,'linear');	
 			anim2.add(objects.my_field,{alpha:[0,1]}, true, 0.25,'linear');	
 			this.start_episode=false;
-			this.add_info(['Переход хода к сопернику...','Opponents turn...'][LANG],999);
+			this.add_info(['Переход хода к сопернику...',"Opponent's turn..."][LANG],999);
 			objects.opp_card_cont.alpha=1;
 			objects.my_card_cont.alpha=0.5;
 		}
@@ -4378,6 +4378,13 @@ async function init_game_env(lang) {
 	console.log(game_platform, LANG);
 						
 	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style>';
+	document.body.style.webkitTouchCallout = "none";
+	document.body.style.webkitUserSelect = "none";
+	document.body.style.khtmlUserSelect = "none";
+	document.body.style.mozUserSelect = "none";
+	document.body.style.msUserSelect = "none";
+	document.body.style.userSelect = "none";
+	
 	
 	//Сцена и пикси
 	app = new PIXI.Application({width:M_WIDTH, height:M_HEIGHT,antialias:false,backgroundColor : 0x152543});

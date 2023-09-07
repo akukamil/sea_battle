@@ -4374,16 +4374,18 @@ async function define_platform_and_language() {
 async function init_game_env(lang) {
 				
 	
-	await define_platform_and_language();
-	console.log(game_platform, LANG);
-						
-	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style>';
 	document.body.style.webkitTouchCallout = "none";
 	document.body.style.webkitUserSelect = "none";
 	document.body.style.khtmlUserSelect = "none";
 	document.body.style.mozUserSelect = "none";
 	document.body.style.msUserSelect = "none";
-	document.body.style.userSelect = "none";
+	document.body.style.userSelect = "none";	
+	
+	await define_platform_and_language();
+	console.log(game_platform, LANG);
+						
+	document.body.innerHTML='<style>html,body {margin: 0;padding: 0;height: 100%;	}body {display: flex;align-items: center;justify-content: center;background-color: rgba(32,32,81,1);flex-direction: column	}</style>';
+
 	
 	
 	//Сцена и пикси

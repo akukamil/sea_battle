@@ -4514,7 +4514,7 @@ async function init_game_env(lang) {
 
 	my_data.rating = (other_data && other_data.rating) || 1400;
 	my_data.games = (other_data && other_data.games) || 0;
-	my_data.name = (other_data && other_data.name) || my_data.name;
+	my_data.name = my_data?.name||other_data?.name||'no_name';
 	my_data.arms = (other_data && other_data.arms) || {'combo_0':999,'combo_332':15,'combo_324':15};
 	my_data.money = (other_data && other_data.money) || 100;
 		

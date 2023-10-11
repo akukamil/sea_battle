@@ -174,11 +174,19 @@ class cell_class extends PIXI.Container{
 		this.other_icon.anchor.set(0.5,0.5);
 		this.other_icon.visible=false;		
 		
+		this.hited_anim=new PIXI.AnimatedSprite([gres.flame0.texture,gres.flame1.texture,gres.flame2.texture,gres.flame3.texture,gres.flame4.texture]);
+		this.hited_anim.width=40;
+		this.hited_anim.height=40;
+		this.hited_anim.y=-3;
+		this.hited_anim.anchor.set(0.5,0.5);
+		this.hited_anim.visible=false;	
+		this.hited_anim.animationSpeed=0.15;
+		
 		this.ship_id=-1;
 		this.type='';
 		this.bonus_type='';
 		
-		this.addChild(this.ship_part,this.other_icon);
+		this.addChild(this.ship_part,this.other_icon,this.hited_anim);
 		
 	}	
 }
@@ -246,6 +254,8 @@ class field_class extends PIXI.Container{
 			const px=pos[i+1];
 			this.map[py][px].ship_part.visible=true;
 			this.map[py][px].other_icon.texture=gres.ship_part_hited_img.texture;
+			this.map[py][px].hited_anim.visible=false;
+			this.map[py][px].hited_anim.stop();
 
 			this.map[py][px].type='ship_destroyed';
 			this.map[py][px].alpha=1;
@@ -273,6 +283,9 @@ class field_class extends PIXI.Container{
 				cell.type='empty';
 				cell.other_icon.visible=false;
 				cell.ship_part.visible=false;
+				cell.other_icon.alpha=1;
+				cell.hited_anim.visible=false;
+				cell.hited_anim.stop();
 				cell.alpha=1;
 			}
 		}
@@ -1953,8 +1966,8 @@ game={
 						
 			sound.play('expl');
 			//cell.ship_part.visible=true;
-			cell.other_icon.texture=gres.ship_spotted_img.texture;
-			cell.other_icon.visible=true;
+			cell.hited_anim.visible=true;
+			cell.hited_anim.play();
 			cell.type='ship_part_hited';
 			const ship_id=cell.ship_id;
 			const ship_data=field.ships[cell.ship_id];
@@ -2092,7 +2105,7 @@ game={
 				for (let x = 0; x <FIELD_X_CELLS; x++){				
 					const cell=objects.my_field.map[y][x];
 					if (cell.type==='ship_part_hited')
-						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
+						cell.other_icon.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
 			//objects.my_field.tile_bcg.tilePosition.x-=0.12;
@@ -2105,7 +2118,7 @@ game={
 				for (let x = 0; x <FIELD_X_CELLS; x++){				
 					const cell=objects.opp_field.map[y][x];
 					if (cell.type==='ship_part_hited')
-						cell.alpha=Math.sin(game_tick*5)*0.5+0.5;
+						cell.other_icon.alpha=Math.sin(game_tick*5)*0.5+0.5;
 				}
 			}
 			//objects.opp_field.tile_bcg.tilePosition.x+=0.12;
@@ -2781,9 +2794,9 @@ req_dialog={
 		
 		const map_opts=[
 			[4,4,3,3,3,2,2,1,1,1],
-			[4,4,4,4,4],
+			[4,4,4,4,4,3],
 			[3,3,3,3,3,3,3,3],
-			[4,4,4,1,1,1,1,1,1,1,1,1,1,1,1],
+			[4,4,4,3,3,3,1,1,1,1,1],
 			[4,4,4,4,3,3,3,3,2,2,1,1,1],
 		]
 		
